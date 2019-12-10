@@ -145,10 +145,10 @@ class DataProvider():
         self.pointfmt = np.dtype([("point", zip([x.name for x in informat.specs],
                                 [x.np_fmt for x in informat.specs]))])
         if not self.manager.header.version in ("1.3", "1.4"):
-            _pmap = np.frombuffer(self._mmap, self.pointfmt,
+            _pmap = np.frombuffer(self._mmap.__buffer__, self.pointfmt,
                         offset = self.manager.header.data_offset)
         else:
-            _pmap = np.frombuffer(self._mmap, self.pointfmt,
+            _pmap = np.frombuffer(self._mmap.__buffer__, self.pointfmt,
                         offset = self.manager.header.data_offset,
                         count = self.manager.header.point_records_count)
         return(_pmap)
@@ -178,7 +178,7 @@ class DataProvider():
                 # first 8 bytes after VLRs are laszip, then is start of data
                 laszip_offset = self.manager.header.data_offset + 8
 
-                points_compressed = np.frombuffer(self._mmap, 
+                points_compressed = np.frombuffer(self._mmap.__buffer__, 
                                                   np.uint8, 
                                                   offset = laszip_offset, 
                                                   count = self._mmap.size() - laszip_offset)
@@ -192,7 +192,7 @@ class DataProvider():
 
                 # we've decompressed the points, now stick the header on the 
                 # front and make a new mmap
-                header = np.frombuffer(self._mmap, np.uint8, count = self.manager.header.data_offset)
+                header = np.frombuffer(self._mmap.__buffer__, np.uint8, count = self.manager.header.data_offset)
                 full = np.zeros(len(header) + len(uncompressed), dtype=np.uint8)
                 full[0:len(header)] = header
                 full[len(header):len(uncompressed)+len(header)] = uncompressed
@@ -200,7 +200,7 @@ class DataProvider():
                 self._mmap = full
 
             
-            self._pmap = np.frombuffer(self._mmap, self.pointfmt,
+            self._pmap = np.frombuffer(self._mmap.__buffer__, self.pointfmt,
                                        offset=self.manager.header.data_offset)
             if self.manager.header.point_records_count != len(self._pmap):
                 if self.manager.mode == "r":
@@ -212,7 +212,7 @@ class DataProvider():
                             Attempting to correct mismatch.""") % (self.manager.header.point_records_count, len(self._pmap))
                     self.manager.header.point_records_count = len(self._pmap)
         else:
-            self._pmap = np.frombuffer(self._mmap, self.pointfmt,
+            self._pmap = np.frombuffer(self._mmap.__buffer__, self.pointfmt,
                                        offset=self.manager.header.data_offset,
                                        count=self.manager.header.point_records_count)
 
